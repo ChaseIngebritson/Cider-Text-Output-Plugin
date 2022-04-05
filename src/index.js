@@ -1,43 +1,42 @@
-import path from 'path'
-import { BrowserWindow, ipcMain, IpcMainEvent } from 'electron'    
+import * as fs from 'fs'    
 
-export default class CiderPluginTemplate {
+export default class TextOutputPlugin {
     /**
      * Base Plugin Details (Eventually implemented into a GUI in settings)
      */
-    name = 'Cider Plugin Template';
-    description = 'A template for building Cider plugins.';
-    version = '1.0.0';
+    name = 'Text Output Plugin';
+    description = 'A Cider Music plugin that outputs song information to a text file';
+    version = '0.1.0';
     author = 'Chase Ingebritson';
+
+    fileName = 'output.txt'
+    template = `$$t - $$a [$$l]`
+    fields = [
+        { key: 'name', placeholder: '$$t' },
+        { key: 'artistName', placeholder: '$$a' },
+        { key: 'albumName', placeholder: '$$l' },
+        { key: 'composerName', placeholder: '$$c' }
+    ]
          
     /**
      * Private variables for interaction in plugins
      */
     env
-    win
 
     /**
      * Runs on plugin load (Currently run on application start)
      */
     constructor(env) {
         this.env = env
-
         this.debug('Loading Complete')
     }
 
     /**
      * Runs on app ready
      */
-    onReady() {
-        this.win = win
+    async onReady() {
+        await this.assureOutputFileExists()
         this.debug('Ready')
-
-        // ipcMain.handle("plugin.frontendComm", (event: IpcMainEvent, message: any) => {
-        //     console.debug(`Frontend says: ${message}`)
-
-        //     const window = this.env.utils.getWindow()
-        //     window.webContents.send("plugin.backendComm", 'Hello from the backend!')
-        // })
     }
 
     /**
@@ -46,9 +45,6 @@ export default class CiderPluginTemplate {
      */
     onRendererReady(win) {
         this.debug('Renderer Ready')
-        
-        this.env.utils.loadJSFrontend(path.join(this.env.dir, "index.frontend.js"))
-        this.env.utils.loadJSFrontend(path.join(this.env.dir, "ciderPluginTemplate-vue.js"))
     }
 
     /**
@@ -63,7 +59,8 @@ export default class CiderPluginTemplate {
      * @param attributes Music Attributes (attributes.status = current state)
      */
     onPlaybackStateDidChange(attributes) {
-    
+        const updatedTemplate = this.populateTemplate(attributes)
+        this.updateOutputFile(updatedTemplate)
     }
 
     /**
@@ -71,10 +68,50 @@ export default class CiderPluginTemplate {
      * @param attributes Music Attributes
      */
     onNowPlayingItemDidChange(attributes) {
-
+        const updatedTemplate = this.populateTemplate(attributes)
+        this.updateOutputFile(updatedTemplate)
     }
 
     debug(text) {
         console.log(`[Plugin][${this.name}]`, text)
+    }
+
+    /**
+     * Create the output file, or just open it if it already exists
+     * @private
+     */
+     async assureOutputFileExists() {
+        try {
+            await fs.promises.mkdir(this.env.dir, { recursive: true })
+            await fs.promises.open(`${this.env.dir}/${this.fileName}`, 'w')
+        } catch (err) {
+            console.error(`[Plugin][${this.name}]`, err)
+        }
+    }
+
+    /**
+     * Populate the template with the song and artist
+     * @private
+     */
+    populateTemplate(attributes) {
+        let output = this.template
+
+        this.fields.forEach(field => {
+            if (attributes[field.key]) {
+                output = output.replaceAll(field.placeholder, attributes[field.key])
+            }
+        })
+
+        return output
+    }
+
+    /**
+     * Create and update the file
+     * @param input The contents to write to the file
+     * @private
+     */
+    async updateOutputFile(input) {
+        await fs.promises.writeFile(`${this.env.dir}/${this.fileName}`, input)
+            .catch(err => console.error(`[Plugin][${this.name}]`, err))
     }
 }
