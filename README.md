@@ -1,16 +1,17 @@
 # Cider Plugin Template
 
-This is a [Cider Music](https://github.com/ciderapp/Cider) plugin template designed to streamline the plugin creation process while using Typescript. The template attempts to adhere to the [Cider Music v2 plugin schema](https://github.com/ciderapp/plugin-schema-poc/tree/main/v2_plugin).
+This is a [Cider Music](https://github.com/ciderapp/Cider) plugin for generating and updating a text file that contains information on the currently playing song.
 
-## Building
+## Installation
 
-This template utilizes [rollup.js](https://rollupjs.org/guide/en/) to compile the Typescript and package all required files.
+Assuming [Cider](https://github.com/ciderapp/Cider) is installed already:
 
-### Installation
+* Select the dropdown menu in the top-left
+* Settings > Advanced > Explore GitHub Plugins
+* Text Output Plugin
+* Install
 
-```bash
-yarn
-```
+## Contributing
 
 ### Development
 
@@ -24,18 +25,6 @@ yarn start
 
 ```bash
 yarn build
-```
-
-### Deployment
-
-**IMPORTANT NOTE BEFORE USING THE DEPLOY FUNCTION:**
-
-The Cider plugin system requires the plugin deployment files to be contained the in the `main` branch. As such, the deploy function will create a commit on the `main` branch with the production files.
-
-I would highly recommend using a seperately named branch, such as `dev-main` or something similar, to do development on.
-
-```bash
-yarn deploy
 ```
 
 ## Resources
